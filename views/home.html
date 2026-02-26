@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UserHub</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(160deg, #f0f4f8 0%, #e2e8f0 100%);
+        color: #1e293b;
+        padding: 2rem 1rem;
+      }
+      .container { max-width: 560px; margin: 0 auto; }
+      header { text-align: center; margin-bottom: 2rem; }
+      h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; color: #0f172a; }
+      nav { margin-top: 0.5rem; }
+      nav a, .btn-link {
+        color: #475569;
+        text-decoration: none;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      nav a:hover, .btn-link:hover { background: #e2e8f0; color: #0f172a; }
+      .link-small { font-size: 0.875rem; color: #64748b; }
+      .link-small a { color: #3b82f6; }
+      .message-inline { word-break: break-all; }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      }
+      .card h2, .card h3 { margin: 0 0 1rem; font-size: 1.1rem; font-weight: 600; color: #334155; }
+      .auth-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+      .auth-tabs button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .auth-tabs button.active { background: #3b82f6; color: #fff; }
+      .auth-form { display: none; }
+      .auth-form.active { display: block; }
+      .auth-form label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #64748b; }
+      .auth-form input { margin-bottom: 1rem; }
+      .user-info { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; }
+      #users-list { list-style: none; margin: 0; padding: 0; }
+      #users-list li {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      #users-list li:last-child { border-bottom: none; }
+      .btn {
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-edit { background: #e0f2fe; color: #0369a1; }
+      .btn-edit:hover { background: #bae6fd; }
+      .btn-delete { background: #fee2e2; color: #b91c1c; }
+      .btn-delete:hover { background: #fecaca; }
+      .btn-save { background: #22c55e; color: #fff; }
+      .btn-save:hover { background: #16a34a; }
+      .btn-cancel { background: #f1f5f9; color: #475569; }
+      .btn-cancel:hover { background: #e2e8f0; }
+      .btn-add, .btn-primary { background: #3b82f6; color: #fff; padding: 0.5rem 1rem; }
+      .btn-add:hover, .btn-primary:hover { background: #2563eb; }
+      input[type="text"], input[type="number"], input[type="email"], input[type="password"] {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        width: 100%;
+      }
+      input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+      }
+      #add-user-form { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+      #add-user-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: #64748b; }
+      #add-user-form input { min-width: 120px; }
+      .hidden { display: none !important; }
+      .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
+        z-index: 100;
+      }
+      .modal { background: #fff; border-radius: 12px; padding: 1.5rem; max-width: 400px; width: 90%; }
+      .modal h3 { margin: 0 0 1rem; }
+      .modal label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #64748b; }
+      .modal input { margin-bottom: 1rem; }
+      .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+      #accounts-list { list-style: none; margin: 0; padding: 0; }
+      #accounts-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
+      #accounts-list li:last-child { border-bottom: none; }
+      .role-badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; }
+      .role-badge.admin { background: #fef3c7; color: #b45309; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Welcome to UserHub</h1>
+        <nav id="nav-guest">
+          <a href="/">Home</a>
+        </nav>
+        <nav id="nav-auth" class="hidden">
+          <span class="user-info" id="user-email"></span>
+          <button type="button" class="btn-link" id="change-password-btn">Change password</button>
+          <button type="button" class="btn-link" id="logout-btn">Logout</button>
+        </nav>
+      </header>
+
+      <section id="auth-section" class="card">
+        <h2>Sign in</h2>
+        <div class="auth-tabs">
+          <button type="button" id="tab-login" class="active">Login</button>
+          <button type="button" id="tab-register">Register</button>
+        </div>
+        <form id="login-form" class="auth-form active">
+          <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+          <label>Password <input type="password" name="password" required placeholder="Password"></label>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <p style="margin-top: 0.75rem;"><a href="#" id="forgot-password-link" class="link-small">Forgot password?</a></p>
+        </form>
+        <form id="forgot-password-form" class="auth-form">
+          <p class="link-small" style="margin-bottom: 0.5rem;"><a href="#" id="back-to-login-link">← Back to login</a></p>
+          <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+          <button type="submit" class="btn btn-primary">Send reset link</button>
+          <p id="forgot-result" class="message-inline" style="margin-top: 0.75rem; font-size: 0.875rem;"></p>
+        </form>
+        <form id="register-form" class="auth-form">
+          <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+          <label>Password <input type="password" name="password" required minlength="6" placeholder="Min 6 characters"></label>
+          <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+      </section>
+
+      <section id="app-section" class="hidden">
+        <section class="card">
+          <h2>Users</h2>
+          <ul id="users-list"></ul>
+        </section>
+        <section class="card">
+          <h3>Add user</h3>
+          <form id="add-user-form">
+            <label>Name <input type="text" name="name" required placeholder="Name"></label>
+            <label>Age <input type="number" name="age" min="1" required placeholder="Age"></label>
+            <button type="submit" class="btn btn-add">Add</button>
+          </form>
+        </section>
+
+        <section id="accounts-section" class="card hidden">
+          <h2>Manage accounts</h2>
+          <p class="link-small" style="margin-bottom: 0.5rem;">Users who can log in to this app</p>
+          <ul id="accounts-list"></ul>
+        </section>
+      </section>
+
+      <div id="change-password-modal" class="modal-overlay hidden">
+        <div class="modal">
+          <h3>Change password</h3>
+          <form id="change-password-form">
+            <label>Current password <input type="password" name="currentPassword" required></label>
+            <label>New password <input type="password" name="newPassword" required minlength="6"></label>
+            <label>Confirm new password <input type="password" name="confirmPassword" required minlength="6"></label>
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary">Change password</button>
+              <button type="button" class="btn btn-cancel" id="close-change-password">Cancel</button>
+            </div>
+          </form>
+          <p id="change-password-message" style="margin-top: 0.75rem; font-size: 0.875rem;"></p>
+        </div>
+      </div>
+
+      <div id="edit-account-modal" class="modal-overlay hidden">
+        <div class="modal">
+          <h3>Edit account</h3>
+          <form id="edit-account-form">
+            <input type="hidden" name="accountId" id="edit-account-id">
+            <label>Email <input type="email" name="email" required></label>
+            <label>Role
+              <select name="role" style="padding: 0.5rem; border-radius: 8px; width: 100%; margin-bottom: 1rem;">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-cancel" id="close-edit-account">Cancel</button>
+            </div>
+          </form>
+          <p id="edit-account-message" style="margin-top: 0.75rem; font-size: 0.875rem;"></p>
+        </div>
+      </div>
+    </div>
+    <script>
+      const TOKEN_KEY = 'userhub_token';
+      const USER_KEY = 'userhub_user';
+
+      function getToken() { return localStorage.getItem(TOKEN_KEY); }
+      function setToken(token) { localStorage.setItem(TOKEN_KEY, token); }
+      function clearAuth() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
+      function setUser(user) { localStorage.setItem(USER_KEY, JSON.stringify(user)); }
+      function getUser() { const u = localStorage.getItem(USER_KEY); return u ? JSON.parse(u) : null; }
+
+      function authHeaders() {
+        const token = getToken();
+        return token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+      }
+
+      function showAuth() {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('app-section').classList.add('hidden');
+        document.getElementById('nav-guest').classList.remove('hidden');
+        document.getElementById('nav-auth').classList.add('hidden');
+      }
+
+      function showAppUI() {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        document.getElementById('nav-guest').classList.add('hidden');
+        document.getElementById('nav-auth').classList.remove('hidden');
+        const user = getUser();
+        document.getElementById('user-email').textContent = user ? user.email + (user.role === 'admin' ? ' (Admin)' : '') : '';
+        if (user && user.role === 'admin') {
+          document.getElementById('accounts-section').classList.remove('hidden');
+          loadAccounts();
+        } else {
+          document.getElementById('accounts-section').classList.add('hidden');
+        }
+      }
+
+      function renderAccounts(accounts) {
+        const list = document.getElementById('accounts-list');
+        list.innerHTML = '';
+        accounts.forEach(function(acc) {
+          const li = document.createElement('li');
+          const roleBadge = document.createElement('span');
+          roleBadge.className = 'role-badge' + (acc.role === 'admin' ? ' admin' : '');
+          roleBadge.textContent = acc.role;
+          li.appendChild(document.createTextNode(acc.email + ' '));
+          li.appendChild(roleBadge);
+          li.appendChild(document.createTextNode(' '));
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn btn-edit';
+          editBtn.textContent = 'Edit';
+          editBtn.type = 'button';
+          editBtn.onclick = function() {
+            document.getElementById('edit-account-id').value = acc.id;
+            document.getElementById('edit-account-form').email.value = acc.email;
+            document.getElementById('edit-account-form').role.value = acc.role;
+            document.getElementById('edit-account-modal').classList.remove('hidden');
+            document.getElementById('edit-account-message').textContent = '';
+          };
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-delete';
+          delBtn.textContent = 'Delete';
+          delBtn.type = 'button';
+          delBtn.onclick = function() {
+            if (!confirm('Delete account ' + acc.email + '? They will no longer be able to log in.')) return;
+            fetch('/admin/accounts/' + acc.id, { method: 'DELETE', headers: authHeaders() })
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (data.error) { alert(data.error); return; }
+                loadAccounts();
+              })
+              .catch(function() { alert('Failed to delete'); });
+          };
+          li.appendChild(editBtn);
+          li.appendChild(delBtn);
+          list.appendChild(li);
+        });
+      }
+
+      function loadAccounts() {
+        if (!getUser() || getUser().role !== 'admin') return;
+        fetch('/admin/accounts', { headers: authHeaders() })
+          .then(function(r) { return r.json(); })
+          .then(renderAccounts)
+          .catch(function() { document.getElementById('accounts-list').innerHTML = '<li>Failed to load accounts</li>'; });
+      }
+
+      function renderUsers(users) {
+        const list = document.getElementById('users-list');
+        list.innerHTML = '';
+        users.forEach((user) => {
+          const li = document.createElement('li');
+          li.dataset.id = user.id;
+          li.appendChild(document.createTextNode(user.name + ' (' + user.age + ') '));
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn btn-edit';
+          editBtn.textContent = 'Edit';
+          editBtn.type = 'button';
+          editBtn.onclick = function() {
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'user-edit-input';
+            nameInput.value = user.name;
+            const ageInput = document.createElement('input');
+            ageInput.type = 'number';
+            ageInput.className = 'user-edit-input';
+            ageInput.min = 1;
+            ageInput.value = user.age;
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-save';
+            saveBtn.textContent = 'Save';
+            saveBtn.type = 'button';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-cancel';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.type = 'button';
+            saveBtn.onclick = function() {
+              const name = nameInput.value.trim();
+              const age = parseInt(ageInput.value, 10);
+              fetch('/users/' + user.id, {
+                method: 'PUT',
+                headers: authHeaders(),
+                body: JSON.stringify({ name: name, age: age })
+              }).then(function(r) { return r.json(); }).then(renderUsers).catch(function() { alert('Failed to update'); });
+            };
+            cancelBtn.onclick = function() { loadUsers(); };
+            li.innerHTML = '';
+            li.appendChild(nameInput);
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(ageInput);
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(saveBtn);
+            li.appendChild(cancelBtn);
+          };
+          li.appendChild(editBtn);
+          if (getUser() && getUser().role === 'admin') {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-delete';
+            delBtn.textContent = 'Delete';
+            delBtn.type = 'button';
+            delBtn.onclick = function() {
+              fetch('/users/' + user.id, { method: 'DELETE', headers: authHeaders() })
+                .then(function(r) {
+                  if (r.status === 403) return r.json().then(function(d) { alert(d.error || 'Admin access required'); });
+                  return r.json();
+                })
+                .then(function(users) { if (users) renderUsers(users); })
+                .catch(function() { alert('Failed to delete'); });
+            };
+            li.appendChild(delBtn);
+          }
+          list.appendChild(li);
+        });
+      }
+
+      function loadUsers() {
+        fetch('/users', { headers: authHeaders() })
+          .then(function(res) {
+            if (res.status === 401) { clearAuth(); showAuth(); return null; }
+            return res.json();
+          })
+          .then(function(users) {
+            if (users) { showAppUI(); renderUsers(users); }
+          })
+          .catch(function() { document.getElementById('users-list').innerHTML = '<li>Failed to load users</li>'; });
+      }
+
+      document.getElementById('tab-login').onclick = function() {
+        document.getElementById('tab-login').classList.add('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('login-form').classList.add('active');
+        document.getElementById('register-form').classList.remove('active');
+        document.getElementById('forgot-password-form').classList.remove('active');
+      };
+      document.getElementById('tab-register').onclick = function() {
+        document.getElementById('tab-register').classList.add('active');
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('register-form').classList.add('active');
+        document.getElementById('login-form').classList.remove('active');
+        document.getElementById('forgot-password-form').classList.remove('active');
+      };
+
+      document.getElementById('forgot-password-link').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('login-form').classList.remove('active');
+        document.getElementById('forgot-password-form').classList.add('active');
+        document.getElementById('forgot-result').textContent = '';
+      };
+
+      document.getElementById('back-to-login-link').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('forgot-password-form').classList.remove('active');
+        document.getElementById('login-form').classList.add('active');
+      };
+
+      document.getElementById('forgot-password-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch('/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: this.email.value })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var resultEl = document.getElementById('forgot-result');
+            if (data.resetLink) {
+              resultEl.innerHTML = 'Use this link to reset your password (valid 1 hour): <a href="' + data.resetLink + '" target="_blank">' + data.resetLink + '</a>';
+            } else {
+              resultEl.textContent = data.message || 'Check your email for the reset link.';
+            }
+          })
+          .catch(function() { document.getElementById('forgot-result').textContent = 'Something went wrong.'; });
+      });
+
+      document.getElementById('change-password-btn').onclick = function() {
+        document.getElementById('change-password-modal').classList.remove('hidden');
+        document.getElementById('change-password-form').reset();
+        document.getElementById('change-password-message').textContent = '';
+      };
+
+      document.getElementById('close-change-password').onclick = function() {
+        document.getElementById('change-password-modal').classList.add('hidden');
+      };
+
+      document.getElementById('close-edit-account').onclick = function() {
+        document.getElementById('edit-account-modal').classList.add('hidden');
+      };
+
+      document.getElementById('edit-account-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var id = document.getElementById('edit-account-id').value;
+        fetch('/admin/accounts/' + id, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ email: this.email.value, role: this.role.value })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var msgEl = document.getElementById('edit-account-message');
+            msgEl.textContent = data.error || 'Saved.';
+            msgEl.style.color = data.error ? '#b91c1c' : '#166534';
+            if (!data.error) {
+              loadAccounts();
+              if (parseInt(id, 10) === getUser().id) {
+                setUser({ ...getUser(), email: data.email, role: data.role });
+                document.getElementById('user-email').textContent = data.email + (data.role === 'admin' ? ' (Admin)' : '');
+              }
+              setTimeout(function() { document.getElementById('edit-account-modal').classList.add('hidden'); }, 1000);
+            }
+          })
+          .catch(function() {
+            document.getElementById('edit-account-message').textContent = 'Something went wrong.';
+            document.getElementById('edit-account-message').style.color = '#b91c1c';
+          });
+      });
+
+      document.getElementById('change-password-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var newPassword = this.newPassword.value;
+        var confirmPassword = this.confirmPassword.value;
+        if (newPassword !== confirmPassword) {
+          document.getElementById('change-password-message').textContent = 'Passwords do not match';
+          document.getElementById('change-password-message').style.color = '#b91c1c';
+          return;
+        }
+        fetch('/change-password', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ currentPassword: this.currentPassword.value, newPassword: newPassword })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var msgEl = document.getElementById('change-password-message');
+            msgEl.textContent = data.error || data.message;
+            msgEl.style.color = data.error ? '#b91c1c' : '#166534';
+            if (!data.error) {
+              document.getElementById('change-password-form').reset();
+              setTimeout(function() {
+                document.getElementById('change-password-modal').classList.add('hidden');
+              }, 1500);
+            }
+          })
+          .catch(function() {
+            document.getElementById('change-password-message').textContent = 'Something went wrong.';
+            document.getElementById('change-password-message').style.color = '#b91c1c';
+          });
+      });
+
+      document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: this.email.value, password: this.password.value })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.error) { alert(data.error); return; }
+            setToken(data.token);
+            setUser(data.user);
+            loadUsers();
+          })
+          .catch(function() { alert('Login failed'); });
+      });
+
+      document.getElementById('register-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: this.email.value, password: this.password.value })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.error) { alert(data.error); return; }
+            setToken(data.token);
+            setUser(data.user);
+            loadUsers();
+          })
+          .catch(function() { alert('Registration failed'); });
+      });
+
+      document.getElementById('logout-btn').onclick = function() {
+        clearAuth();
+        showAuth();
+      };
+
+      document.getElementById('add-user-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = this.name.value.trim();
+        const age = parseInt(this.age.value, 10);
+        fetch('/users', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: name, age: age })
+        })
+          .then(res => res.json())
+          .then(renderUsers)
+          .then(function() { this.reset(); }.bind(this))
+          .catch(function() { alert('Failed to add user'); });
+      });
+
+      if (getToken()) {
+        loadUsers();
+      } else {
+        showAuth();
+      }
+    </script>
+  </body>
+</html>
