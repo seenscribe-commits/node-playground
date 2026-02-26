@@ -1,35 +1,35 @@
 const db = require('../db');
 
-function getUsers(req, res) {
-  const users = db.prepare('SELECT id, name, age FROM users ORDER BY id').all();
+async function getUsers(req, res) {
+  const users = await db.all('SELECT id, name, age FROM users ORDER BY id');
   res.json(users);
 }
 
-function addUser(req, res) {
+async function addUser(req, res) {
   const { name, age } = req.body;
-  db.prepare('INSERT INTO users (name, age) VALUES (?, ?)').run(name, age);
-  const users = db.prepare('SELECT id, name, age FROM users ORDER BY id').all();
+  await db.run('INSERT INTO users (name, age) VALUES (?, ?)', name, age);
+  const users = await db.all('SELECT id, name, age FROM users ORDER BY id');
   res.status(201).json(users);
 }
 
-function updateUser(req, res) {
+async function updateUser(req, res) {
   const id = parseInt(req.params.id, 10);
   const { name, age } = req.body;
-  const result = db.prepare('UPDATE users SET name = ?, age = ? WHERE id = ?').run(name, age, id);
+  const result = await db.run('UPDATE users SET name = ?, age = ? WHERE id = ?', name, age, id);
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Not found' });
   }
-  const users = db.prepare('SELECT id, name, age FROM users ORDER BY id').all();
+  const users = await db.all('SELECT id, name, age FROM users ORDER BY id');
   res.json(users);
 }
 
-function deleteUser(req, res) {
+async function deleteUser(req, res) {
   const id = parseInt(req.params.id, 10);
-  const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
+  const result = await db.run('DELETE FROM users WHERE id = ?', id);
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Not found' });
   }
-  const users = db.prepare('SELECT id, name, age FROM users ORDER BY id').all();
+  const users = await db.all('SELECT id, name, age FROM users ORDER BY id');
   res.json(users);
 }
 
